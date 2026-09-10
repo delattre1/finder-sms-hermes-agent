@@ -1,0 +1,14 @@
+# O client de uso do Agent Index, pinado.
+#
+# Nao commitado: plow-pbc/agent-index-client e o dono desse arquivo. Este repo
+# nomeia um commit em vez de carregar uma copia que diverge dele. O build busca
+# exatamente esta revisao e recusa qualquer outra.
+#
+# Um sha, nunca `main`: uma referencia movel substitui codigo nao revisado
+# dentro de um agente que segura uma credencial viva.
+#
+# O checksum e a segunda metade disso. Um sha na URL so vale o quanto vale o
+# host que serve, e este arquivo e executado dentro do agente.
+sha=f900ff144076f0a766584b6ec4d0993600779b16
+sha256=633ad3bc24a51d6b7dcfaae319983ab174d9853a525237d99cac64878452560c
+path=standalone/agent_index_client.py

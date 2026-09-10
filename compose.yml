@@ -1,0 +1,60 @@
+services:
+  agent:
+    build: .
+    # A base so existe em amd64; num Mac Apple Silicon o Docker emula. Declarar
+    # aqui tambem (nao so no Dockerfile) silencia o aviso de runtime que
+    # apareceria em cada `up` -- o mesmo motivo do ARG la: nao assustar quem
+    # esta instalando.
+    platform: linux/amd64
+    environment:
+      # Quem este agente e para o leaderboard do Agent Index. Sem isso o servico
+      # reporter fica de pe parado e nada aparece no indice.
+      AGENT_ID: finder
+      # Os caminhos do LADO DE FORA, repassados so pra que o agente consiga
+      # dizer "achei em /Users/voce/Documents" em vez de "achei em /files/a".
+      # Dentro do container eles nao abrem nada: o que existe e o mount.
+      FINDER_ROOT_A: ${FINDER_ROOT_A:-}
+      FINDER_ROOT_B: ${FINDER_ROOT_B:-}
+      FINDER_ROOT_C: ${FINDER_ROOT_C:-}
+      FINDER_ROOT_D: ${FINDER_ROOT_D:-}
+    # So o modo de entrega por e-mail precisa disto. O padrao -- anexo no proprio
+    # chat -- nao usa credencial nenhuma alem da que o container ja tem.
+    # `required: false` de proposito: com o env_file obrigatorio, quem sobe o
+    # container antes de criar o .env leva `stat .env: no such file or
+    # directory` -- um erro do Docker, sobre um arquivo, antes de o agente
+    # existir. Assim o container sobe e a falta vira uma frase do proprio agente
+    # no chat, que e onde a pessoa esta olhando.
+    env_file:
+      - path: ./.env
+        required: false
+    volumes:
+      # `.host`, nao o caminho que o agente le: um bind carrega a posse desta
+      # maquina pra dentro, e a imagem copia o arquivo pro lugar como root.
+      - ./plow-credentials:/var/lib/plow/credentials.host:ro
+      # A casa do agente, preservada entre `up`/`down` pras sessoes e o setup
+      # dele sobreviverem. Um skill editado chega no rebuild + restart; so o
+      # SOUL.md ou um reset completo pedem `down -v`.
+      - agent-home:/var/lib/hermes
+      # AS SUAS PASTAS, SOMENTE LEITURA.
+      #
+      # O `:ro` no fim de cada linha e a peca inteira da confianca deste agente:
+      # nao e uma promessa no README, e o kernel recusando a escrita. O
+      # container nao consegue renomear, mover nem apagar nada seu, e nao existe
+      # opcao no chat que mude isso -- mudar exige editar este arquivo e
+      # reiniciar, que e uma coisa que so voce faz.
+      #
+      # Slots vazios: um bind cuja origem nao existe NAO falha o `up` -- o Docker
+      # cria um diretorio vazio no destino. E por isso que os quatro podem ficar
+      # declarados aqui enquanto voce so preencheu um: os outros tres viram
+      # pastas vazias que o agente reporta como nao montadas, em vez de um erro
+      # antes do primeiro boot.
+      - ${FINDER_ROOT_A:-./roots/a}:/files/a:ro
+      - ${FINDER_ROOT_B:-./roots/b}:/files/b:ro
+      - ${FINDER_ROOT_C:-./roots/c}:/files/c:ro
+      - ${FINDER_ROOT_D:-./roots/d}:/files/d:ro
+    # O agente faz checkpoint da sessao no SIGTERM e o supervisor dele da 30s
+    # pra isso, entao o prazo do Docker tem que ficar do lado de fora desse.
+    stop_grace_period: 35s
+
+volumes:
+  agent-home:

@@ -1,0 +1,13 @@
+# A credencial mintada pelo plow-agents. NUNCA vai pro git.
+plow-credentials
+.env
+*.env
+!/.env.example
+
+# Os pontos de montagem vazios que o Docker cria quando um FINDER_ROOT_ fica em
+# branco. Sao artefato local do `up`, nao conteudo do repo.
+roots/
+
+__pycache__/
+*.pyc
+.DS_Store

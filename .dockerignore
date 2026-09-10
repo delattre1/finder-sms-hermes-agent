@@ -1,0 +1,12 @@
+.git
+.gitignore
+plow-credentials
+.env
+*.env
+!.env.example
+roots/
+__pycache__
+*.pyc
+.DS_Store
+docs/
+tests/
