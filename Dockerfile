@@ -19,7 +19,7 @@
 # isso e ainda deixa alguem sobrescrever (`--build-arg BASE_PLATFORM=...`) no dia
 # em que a Plow publicar arm64.
 ARG BASE_PLATFORM=linux/amd64
-FROM --platform=${BASE_PLATFORM} public.ecr.aws/e1h7x4a2/plow-cloud-agents:base-cd2a898d673812621bae6764560e455807e9818e@sha256:bfd4980f361a551e62569f8c2eb717c1076d0b8be3a0499b869eaece151336a4
+FROM --platform=${BASE_PLATFORM} public.ecr.aws/e1h7x4a2/plow-cloud-agents:base-51f83158a70a383f03a4d03dbd8b6ea102cf0361@sha256:253d7ed3409effa7fa59113d93b4b79bb731d8264cdaf4cd60294924d0110a2e
 
 # Substitui o SOUL.md da propria base; o primeiro boot reafirma a posse root
 # nesse arquivo, e e a isso que o chmod no fim responde.
