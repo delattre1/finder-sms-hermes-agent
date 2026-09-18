@@ -1,5 +1,5 @@
 #!/bin/sh
-# Reporta o uso de token deste agente pro Agent Index, de hora em hora.
+# Reporta o uso de token deste agente pro Agent Index, a cada 5 minutos.
 #
 # SEM CHAVE DE LIGA/DESLIGA. O reporter esta aqui porque alguem o colocou nesta
 # imagem, e essa e a decisao. Um agente cujo dono nao quer o uso no indice e um
@@ -37,7 +37,7 @@ while :; do
   #
   # 2 nao e 3, e isto nao pode colapsar os dois: registrar por cima de um
   # estado que o client nao conseguiu ler minta uma chave contra um install id
-  # novo e abandona o uso que este install ja publicou. Essa hora e pulada.
+  # novo e abandona o uso que este install ja publicou. Essa rodada e pulada.
   /command/s6-setuidgid hermes \
     env HOME="$HERMES_HOME" HERMES_HOME="$HERMES_HOME" \
     /opt/hermes/.venv/bin/python3 /opt/plow/agent-index-client.py status >/dev/null
@@ -48,35 +48,30 @@ while :; do
         env HOME="$HERMES_HOME" HERMES_HOME="$HERMES_HOME" AGENT_ID="$AGENT_ID" PLOW_AGENT_TOKEN="$PLOW_AGENT_TOKEN" \
         /opt/hermes/.venv/bin/python3 /opt/plow/agent-index-client.py \
         --register --agent "$AGENT_ID" >/dev/null || {
-      echo "agent-index: sem chave do indice nesta hora, nao vou reportar" >&2
-      /bin/sleep 3600
+      echo "agent-index: sem chave do indice nesta rodada, nao vou reportar" >&2
+      /bin/sleep 300
       continue
       }
       ;;
     *)
       echo "agent-index: o client nao conseguiu ler o estado deste install" >&2
       echo "(acima); ficando de lado em vez de registrar por cima dele." >&2
-      /bin/sleep 3600
+      /bin/sleep 300
       continue
       ;;
   esac
 
   # Nunca fatal. Um longrun que crasha seria respawnado num loop apertado, o
-  # que transforma uma hora ruim num loop quente contra o indice.
-  # A janela de retentativa muda conforme o reporte deu certo ou nao, e isso
-  # importa mais do que parece. Numa instalacao NOVA a primeira rodada sempre
-  # falha: o state.db do Hermes so nasce quando o agente atende o primeiro
-  # turno, e este servico sobe antes disso. Com uma espera fixa de uma hora,
-  # todo install novo passa a primeira hora marcando zero no indice -- e o
-  # ranking e installs x uso, medido numa janela de sete dias. Cinco minutos
-  # depois de uma falha poe o install no quadro quase na hora; uma hora depois
-  # de um sucesso mantem o custo baixo no estado normal.
+  # que transforma uma rodada ruim num loop quente contra o indice.
+  # Cinco minutos entre rodadas, com sucesso ou nao: numa instalacao NOVA a
+  # primeira rodada falha (o state.db do Hermes so nasce no primeiro turno) e
+  # o uso aparece no indice quase na hora, em vez de uma hora depois.
   if /command/s6-setuidgid hermes \
     env HOME="$HERMES_HOME" HERMES_HOME="$HERMES_HOME" AGENT_ID="$AGENT_ID" \
     /opt/hermes/.venv/bin/python3 /opt/plow/agent-index-client.py; then
-    /bin/sleep 3600
+    /bin/sleep 300
   else
-    echo "agent-index: reporter saiu diferente de zero (acima); tento em 5 min" >&2
+    echo "agent-index: reporter saiu diferente de zero (acima); tento de novo em 5 min" >&2
     /bin/sleep 300
   fi
 done

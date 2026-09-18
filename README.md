@@ -158,13 +158,13 @@ The three delivery steps fail loudly and in order; the agent will not send the
 message if the upload failed, because that would hand you an empty bubble saying
 "here's your file".
 
-**Nothing shows up on the Agent Index** — the reporter runs hourly, not on boot.
+**Nothing shows up on the Agent Index** — the reporter runs every 5 minutes, not on boot.
 `docker compose logs agent | grep agent-index` tells you what it did.
 
 ## The Agent Index
 
 This image ships the AI Worth Using usage reporter as a supervised service. It
-registers once and reports token counts hourly, and it reports **nothing else** —
+registers once and reports token counts every 5 minutes, and it reports **nothing else** —
 no prompts, no message text, and in particular **no file names and no paths**.
 The `AGENT_ID` in `compose.yml` is what it reports under.
 
