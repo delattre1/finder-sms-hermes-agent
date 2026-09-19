@@ -163,14 +163,10 @@ message if the upload failed, because that would hand you an empty bubble saying
 
 ## The Agent Index
 
-This image ships the AI Worth Using usage reporter as a supervised service. It
+The Plow base image ships the AI Worth Using usage reporter as a supervised service. It
 registers once and reports token counts every 5 minutes, and it reports **nothing else** —
 no prompts, no message text, and in particular **no file names and no paths**.
 The `AGENT_ID` in `compose.yml` is what it reports under.
-
-There is no switch to turn it off. An agent whose owner doesn't want that is one
-built without the service — delete `image/s6-overlay/s6-rc.d/agent-index/` and
-rebuild.
 
 ## License
 

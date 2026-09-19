@@ -19,7 +19,7 @@
 # isso e ainda deixa alguem sobrescrever (`--build-arg BASE_PLATFORM=...`) no dia
 # em que a Plow publicar arm64.
 ARG BASE_PLATFORM=linux/amd64
-FROM --platform=${BASE_PLATFORM} public.ecr.aws/e1h7x4a2/plow-cloud-agents:base-51f83158a70a383f03a4d03dbd8b6ea102cf0361@sha256:253d7ed3409effa7fa59113d93b4b79bb731d8264cdaf4cd60294924d0110a2e
+FROM --platform=${BASE_PLATFORM} public.ecr.aws/e1h7x4a2/plow-cloud-agents:base-ef0019372ff8bca593611b31ebd2e08f9f1458ff@sha256:a8a2f97ad78b8192d80a984dce81d3bf5a9a883d18cb7b677704913a09b56aee
 
 # Substitui o SOUL.md da propria base; o primeiro boot reafirma a posse root
 # nesse arquivo, e e a isso que o chmod no fim responde.
@@ -65,22 +65,3 @@ RUN find /opt/hermes/skills -mindepth 1 -type d -exec chmod 0755 {} + \
 #
 # Se algum dia este agente ganhar um cron, esta copia volta junto -- as duas
 # coisas sao a mesma decisao vista de dois lados.
-
-# O reporter de uso, buscado no build a partir do commit que vendor/client.pin
-# nomeia e conferido contra o hash ao lado. Buscado em vez de commitado porque
-# plow-pbc/agent-index-client e o dono do arquivo; pinado em vez de seguir um
-# branch porque isto roda dentro de um agente com credencial viva, e uma
-# referencia movel substituiria codigo nao revisado por baixo dele. O checksum
-# e a segunda metade: um sha numa URL so vale o quanto vale o host que serve.
-COPY vendor/client.pin /opt/plow/agent-index-client.pin
-RUN set -eu; \
-    sha="$(sed -n 's/^sha=//p' /opt/plow/agent-index-client.pin)"; \
-    want="$(sed -n 's/^sha256=//p' /opt/plow/agent-index-client.pin)"; \
-    path="$(sed -n 's/^path=//p' /opt/plow/agent-index-client.pin)"; \
-    curl -fsS --max-time 60 -o /opt/plow/agent-index-client.py \
-      "https://raw.githubusercontent.com/plow-pbc/agent-index-client/${sha}/${path}"; \
-    got="$(sha256sum /opt/plow/agent-index-client.py | cut -d' ' -f1)"; \
-    [ "$got" = "$want" ] || { echo "agent-index client e $got, o pin diz $want" >&2; exit 1; }; \
-    chmod 0644 /opt/plow/agent-index-client.py
-
-COPY image/s6-overlay/ /etc/s6-overlay/
